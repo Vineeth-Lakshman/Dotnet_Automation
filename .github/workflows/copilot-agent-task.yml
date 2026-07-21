@@ -1,0 +1,62 @@
+name: Copilot Agent Workflow with Slack Gate
+
+on:
+  repository_dispatch:
+    types: [jira_ticket_assigned]
+  workflow_dispatch:
+    inputs:
+      ticket_id:
+        description: 'Jira Ticket ID'
+        required: true
+        default: 'DEMO-101'
+      ticket_description:
+        description: 'Description of task'
+        required: true
+        default: 'Add a GET /health endpoint to the API'
+
+jobs:
+  slack-approval-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request Approval via Slack
+        id: slack_approval
+        uses: varu3/slack-approval@main
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        with:
+          custom-blocks: |
+            [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*New Jira Ticket Assigned:* `${{ github.event.inputs.ticket_id || 'JIRA-AGENT-1' }}`\n*Task:* ${{ github.event.inputs.ticket_description || 'Implement feature requested in ticket' }}\n\n*Do you grant Copilot permission to generate code changes?*"
+                }
+              }
+            ]
+
+  execute-copilot-task:
+    needs: slack-approval-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Task Branch
+        run: |
+          git checkout -b feature/${{ github.event.inputs.ticket_id || 'JIRA-AGENT-1' }}
+
+      - name: Trigger GitHub Copilot Agent
+        uses: github/copilot-action@v1 # Adjust to your custom agent invocation script / CLI action
+        with:
+          instructions: ${{ github.event.inputs.ticket_description || 'Fulfill the issue request' }}
+
+      - name: Push Branch and Open Pull Request
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin feature/${{ github.event.inputs.ticket_id || 'JIRA-AGENT-1' }}
+          gh pr create --title "${{ github.event.inputs.ticket_id }}: Auto-resolved by Copilot Agent" --body "This PR was generated automatically following Slack approval."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
