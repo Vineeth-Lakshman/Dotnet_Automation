@@ -20,12 +20,13 @@ jobs:
         uses: slackapi/slack-github-action@v1.26.0
         with:
           channel-id: 'C0BJTV1UYJD'
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           slack-message: |
             🤖 *Jira Ticket Assigned:* `${{ inputs.ticket_id }}`
             *Task:* ${{ inputs.ticket_description }}
             *Status:* Task approved and dispatched to Copilot Agent.
         env:
-          SLACK_BOT_TOKEN: 'xoxb-11620195044407-11637200517618-WIBMaaUp0Gr7GaNNOnUafaRo'
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   execute-copilot-task:
     needs: slack-notification
