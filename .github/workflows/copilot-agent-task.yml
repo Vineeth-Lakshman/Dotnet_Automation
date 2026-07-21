@@ -29,7 +29,7 @@ jobs:
 
   execute-copilot-task:
     needs: slack-notification
-    environmentt: agent-approval
+    environment: agent-approval
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
