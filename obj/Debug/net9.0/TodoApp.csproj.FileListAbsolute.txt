@@ -45,3 +45,4 @@ C:\Users\vineeth.l_isteer\Desktop\Git_Automation\TodoApp\obj\Debug\net9.0\TodoAp
 C:\Users\vineeth.l_isteer\Desktop\Git_Automation\TodoApp\obj\Debug\net9.0\TodoApp.genruntimeconfig.cache
 C:\Users\vineeth.l_isteer\Desktop\Git_Automation\TodoApp\obj\Debug\net9.0\ref\TodoApp.dll
 C:\Users\vineeth.l_isteer\Desktop\Git_Automation\TodoApp\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+C:\Users\vineeth.l_isteer\Desktop\Git_Automation\TodoApp\obj\Debug\net9.0\TodoApp.sourcelink.json
