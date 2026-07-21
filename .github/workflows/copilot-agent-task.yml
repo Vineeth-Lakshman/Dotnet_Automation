@@ -29,6 +29,7 @@ jobs:
 
   execute-copilot-task:
     needs: slack-notification
+    environmentt: agent-approval
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -40,4 +41,4 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Verify Build
-        run: dotnet build TodoApp/TodoApp.csproj
+        run: dotnet build *.csproj
