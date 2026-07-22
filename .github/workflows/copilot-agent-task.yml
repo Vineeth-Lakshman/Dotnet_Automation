@@ -1,14 +1,18 @@
 name: Copilot Agent Workflow with Slack Gate
 
 on:
+  repository_dispatch:
+    types: [jira_ticket_assigned]
   workflow_dispatch:
     inputs:
       ticket_id:
         description: 'Jira Ticket ID'
         required: true
+        default: 'KAN-9'
       ticket_description:
-        description: 'Task Prompt from Jira'
+        description: 'Task Description'
         required: true
+        default: 'Add DueDate attribute to TodoItem model'
 
 jobs:
   slack-notification:
@@ -19,25 +23,36 @@ jobs:
         with:
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           slack-message: |
-            🤖 *Jira Ticket Dispatched to Agent:* `${{ inputs.ticket_id }}`
-            *Prompt:* ${{ inputs.ticket_description }}
+            🤖 *Jira Ticket Dispatched:* `${{ inputs.ticket_id }}`
+            *Task:* ${{ inputs.ticket_description }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   execute-copilot-task:
     needs: slack-notification
-    environment: agent-approval   # <--- Human in the Loop approval gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Uses GitHub's official Agent CLI / Action to dynamically generate code
-      - name: Invoke AI Agent Engine
-        uses: github/copilot-action@v1  # Triggers dynamic agent generation
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          prompt: ${{ inputs.ticket_description }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          dotnet-version: '8.0.x'
 
       - name: Verify Build
-        run: dotnet build *.csproj
+        run: dotnet build TodoApp/TodoApp.csproj
+
+      # Create Pull Request step using verified marketplace action
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "feat(${{ inputs.ticket_id }}): ${{ inputs.ticket_description }}"
+          title: "${{ inputs.ticket_id }}: ${{ inputs.ticket_description }}"
+          body: |
+            Automated PR for Jira Ticket `${{ inputs.ticket_id }}`.
+            
+            **Description:** ${{ inputs.ticket_description }}
+          branch: "feature/${{ inputs.ticket_id }}"
+          delete-branch: true
