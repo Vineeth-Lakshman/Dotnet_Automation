@@ -6,11 +6,9 @@ on:
       ticket_id:
         description: 'Jira Ticket ID'
         required: true
-        default: 'DEMO-101'
       ticket_description:
-        description: 'Description of task'
+        description: 'Task Prompt from Jira'
         required: true
-        default: 'Add DueDate attribute to TodoItem model'
 
 jobs:
   slack-notification:
@@ -19,26 +17,27 @@ jobs:
       - name: Send Slack Alert
         uses: slackapi/slack-github-action@v1.26.0
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          channel-id: 'C0BJTV1UY3D'
           slack-message: |
-            🤖 *Jira Ticket Assigned:* `${{ inputs.ticket_id }}`
-            *Task:* ${{ inputs.ticket_description }}
-            *Status:* Task approved and dispatched to Copilot Agent.
+            🤖 *Jira Ticket Dispatched to Agent:* `${{ inputs.ticket_id }}`
+            *Prompt:* ${{ inputs.ticket_description }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   execute-copilot-task:
     needs: slack-notification
-    environment: agent-approval
+    environment: agent-approval   # <--- Human in the Loop approval gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      # Uses GitHub's official Agent CLI / Action to dynamically generate code
+      - name: Invoke AI Agent Engine
+        uses: github/copilot-action@v1  # Triggers dynamic agent generation
         with:
-          dotnet-version: '8.0.x'
+          prompt: ${{ inputs.ticket_description }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify Build
         run: dotnet build *.csproj
