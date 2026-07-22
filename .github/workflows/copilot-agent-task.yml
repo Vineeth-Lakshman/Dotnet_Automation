@@ -41,6 +41,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Verify Build
+        working-directory: ./TodoApp
         run: dotnet build
 
       # Create Pull Request step using verified marketplace action
