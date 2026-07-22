@@ -17,7 +17,7 @@ jobs:
       - name: Send Slack Alert
         uses: slackapi/slack-github-action@v1.26.0
         with:
-          channel-id: 'C0BJTV1UY3D'
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           slack-message: |
             🤖 *Jira Ticket Dispatched to Agent:* `${{ inputs.ticket_id }}`
             *Prompt:* ${{ inputs.ticket_description }}
